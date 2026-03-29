@@ -196,7 +196,9 @@ export default function CreateRequest() {
           <div className="glass" style={{ padding: 0, overflow: 'hidden', marginBottom: 12, position: 'relative', zIndex: 1 }}>
             {position ? (
               <MapContainer center={position} zoom={15} style={{ height: 360 }}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OSM' />
+                <TileLayer 
+                  url={localStorage.getItem('theme') === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'} 
+                />
                 <DraggableMarker position={position} setPosition={setPosition} />
                 <FlyToLocation pos={position} />
               </MapContainer>

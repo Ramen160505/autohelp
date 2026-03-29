@@ -5,6 +5,23 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import ChatPanel from '../components/ChatPanel';
 import StarRating from '../components/StarRating';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix missing marker icons in leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+const helperIcon = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3204/3204121.png',
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+});
 
 const TYPE_CONFIG = {
   battery: { icon: '🔋', label: 'Акумулятор', color: '#f59e0b' },
@@ -46,11 +63,17 @@ export default function RequestDetail() {
   const [showComplaint, setShowComplaint] = useState(false);
   const [complaintReason, setComplaintReason] = useState('');
   const [notification, setNotification] = useState('');
+  const [helperLiveLoc, setHelperLiveLoc] = useState(null);
 
   const fetchRequest = async () => {
     try {
       const res = await client.get(`/requests/${id}`);
       setRequest(res.data);
+      if (res.data.status === 'completed' && user) {
+        const ratingsRes = await client.get(`/ratings/request/${id}`);
+        const userRated = ratingsRes.data.some(r => r.from_user_id === user.id);
+        setRatingDone(userRated);
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Заявку не знайдено');
     } finally {
@@ -75,14 +98,42 @@ export default function RequestDetail() {
       fetchRequest();
     };
 
+    const onHelperMoving = ({ lat, lng }) => {
+      setHelperLiveLoc([lat, lng]);
+    };
+
     socket.on('request_taken', onRequestTaken);
     socket.on('completed', onCompleted);
+    socket.on('helper_moving', onHelperMoving);
 
     return () => {
       socket.off('request_taken', onRequestTaken);
       socket.off('completed', onCompleted);
+      socket.off('helper_moving', onHelperMoving);
     };
   }, [socket, id]);
+
+  // Record helper location if I am the helper
+  useEffect(() => {
+    if (!request || !socket || !user) return;
+    const isHelper = request.helper_id === user.id;
+    if (isHelper && request.status === 'taken' && navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        pos => {
+          socket.emit('location_update', { 
+            request_id: request.id, 
+            user_id: user.id, 
+            lat: pos.coords.latitude, 
+            lng: pos.coords.longitude 
+          });
+          setHelperLiveLoc([pos.coords.latitude, pos.coords.longitude]);
+        }, 
+        err => console.error('GPS Watch error', err), 
+        { enableHighAccuracy: true, maximumAge: 5000 }
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, [request, socket, user]);
 
   if (loading) {
     return (
@@ -235,17 +286,43 @@ export default function RequestDetail() {
             </div>
           )}
 
-          {/* Location */}
-          <div className="glass" style={{ padding: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📍 Місце поломки (Координати)</div>
-            
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <a href={wazeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#1fb5cf', color: '#fff', border: 'none' }}>
-                Поїхали з Waze 🚗
-              </a>
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#4285F4', color: '#fff', border: 'none' }}>
-                Google Maps 🗺️
-              </a>
+          {/* Location & Live Tracker */}
+          <div className="glass" style={{ overflow: 'hidden', paddingBottom: 16 }}>
+            <div style={{ padding: 16, paddingBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📍 Місце та Live GPS</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <a href={wazeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#1fb5cf', color: '#fff', border: 'none' }}>
+                  Waze навігатор 🚗
+                </a>
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#4285F4', color: '#fff', border: 'none' }}>
+                  Google Maps 🗺️
+                </a>
+              </div>
+            </div>
+            {/* Live Map */}
+            <div style={{ height: 200, width: '100%', background: 'var(--color-surface)', position: 'relative' }}>
+              <MapContainer 
+                center={[request.latitude, request.longitude]} 
+                zoom={14} 
+                style={{ height: '100%', width: '100%', zIndex: 1 }}
+                zoomControl={false}
+              >
+                <TileLayer 
+                  url={localStorage.getItem('theme') === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'} 
+                />
+                
+                {/* Broken Car Marker */}
+                <Marker position={[request.latitude, request.longitude]}>
+                  <Popup>Місце поломки</Popup>
+                </Marker>
+
+                {/* Live Helper Marker */}
+                {helperLiveLoc && (
+                  <Marker position={helperLiveLoc} icon={helperIcon} zIndexOffset={1000}>
+                    <Popup>Помічник їде до вас!</Popup>
+                  </Marker>
+                )}
+              </MapContainer>
             </div>
           </div>
 

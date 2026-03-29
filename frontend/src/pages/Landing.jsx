@@ -272,7 +272,9 @@ export default function Landing() {
         {view === 'map' && (
           <div style={{ flex: 1, position: 'relative' }}>
             <MapContainer center={userPos || defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap' />
+              <TileLayer 
+                url={localStorage.getItem('theme') === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'} 
+              />
               <LocationMarker userPos={userPos} setUserPos={setUserPos} />
               <ClusteredMarkers requests={requests} navigate={navigate} />
               {flyTo && <FlyToLocation pos={flyTo} />}
