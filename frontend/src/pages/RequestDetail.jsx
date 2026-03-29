@@ -114,7 +114,8 @@ export default function RequestDetail() {
   const canRate = request.status === 'completed' && (isOwner || isHelper) && !ratingDone;
   const rateTarget = isOwner ? request.helper : request.user;
 
-  const mapsUrl = `https://www.google.com/maps?q=${request.latitude},${request.longitude}`;
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${request.latitude},${request.longitude}`;
+  const wazeUrl = `https://waze.com/ul?ll=${request.latitude},${request.longitude}&navigate=yes`;
 
   const handleTake = async () => {
     setActionLoading(true);
@@ -236,13 +237,14 @@ export default function RequestDetail() {
 
           {/* Location */}
           <div className="glass" style={{ padding: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📍 Місце</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: 13, color: 'var(--color-text-2)', fontFamily: 'monospace' }}>
-                {Number(request.latitude).toFixed(5)}, {Number(request.longitude).toFixed(5)}
-              </div>
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm" style={{ fontSize: 12 }}>
-                🗺️ Google Maps →
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📍 Місце поломки (Координати)</div>
+            
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              <a href={wazeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#1fb5cf', color: '#fff', border: 'none' }}>
+                Поїхали з Waze 🚗
+              </a>
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#4285F4', color: '#fff', border: 'none' }}>
+                Google Maps 🗺️
               </a>
             </div>
           </div>
