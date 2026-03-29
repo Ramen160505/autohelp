@@ -229,9 +229,9 @@ export default function Landing() {
   return (
     <div style={{ height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       {/* Top bar */}
-      <div style={{ padding: '10px 16px', background: 'var(--color-bg-2)', borderBottom: '1px solid var(--color-border)', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="landing-top-bar">
         {/* Type filters */}
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap', overflowX: 'auto' }}>
+        <div className="filter-scroll-wrapper">
           {TYPES.map(t => (
             <button key={t.value} onClick={() => setFilter(f => ({ ...f, type: t.value }))}
               className="btn btn-sm"
@@ -249,17 +249,21 @@ export default function Landing() {
 
         {/* Address search */}
         {view === 'map' && (
-          <AddressSearch onSelect={handleAddressSelect} />
+          <div className="mobile-search-wrapper">
+            <AddressSearch onSelect={handleAddressSelect} />
+          </div>
         )}
 
         {/* Right side */}
-        <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center' }}>
-          <button className={`btn btn-sm ${view === 'map' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('map')}>🗺️ Карта</button>
-          <button className={`btn btn-sm ${view === 'list' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('list')}>📋 Список</button>
-          <div style={{ fontSize: 13, color: 'var(--color-text-2)', padding: '6px 12px', background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+        <div className="landing-right-bar">
+          <div style={{display: 'flex', gap: '6px'}}>
+            <button className={`btn btn-sm ${view === 'map' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('map')}>🗺️ Карта</button>
+            <button className={`btn btn-sm ${view === 'list' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('list')}>📋 Список</button>
+          </div>
+          <div className="req-count">
             {loading ? '...' : `${requests.length} заявок`}
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => navigate('/create')}>＋ Потрібна допомога</button>
+          <button className="btn btn-primary btn-sm btn-create-req" onClick={() => navigate('/create')}>＋ Потрібна допомога</button>
         </div>
       </div>
 

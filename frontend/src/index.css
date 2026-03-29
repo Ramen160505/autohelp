@@ -258,3 +258,55 @@ img { max-width: 100%; }
   .page { padding: 16px 12px; }
   .container { padding: 0 12px; }
 }
+
+/* ---- Landing Mobile Layout ---- */
+.landing-top-bar {
+  padding: 10px 16px; 
+  background: var(--color-bg-2); 
+  border-bottom: 1px solid var(--color-border); 
+  display: flex; gap: 8px; 
+  align-items: center; 
+  flex-wrap: wrap;
+}
+.filter-scroll-wrapper {
+  display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.filter-scroll-wrapper::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+.landing-right-bar {
+  display: flex; gap: 6px; margin-left: auto; align-items: center;
+}
+.req-count {
+  font-size: 13px; color: var(--color-text-2); padding: 6px 12px; background: var(--color-surface); border-radius: 8px; border: 1px solid var(--color-border);
+}
+@media (max-width: 600px) {
+  .landing-top-bar {
+    padding: 8px 10px; gap: 6px; 
+  }
+  .landing-right-bar {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .landing-top-bar select.input {
+    width: 90px !important;
+    padding: 6px !important;
+    font-size: 13px;
+  }
+  .btn-create-req {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+  .req-count {
+    display: none; /* Hide on small screens to save space */
+  }
+  .mobile-search-wrapper {
+    width: 100%;
+    order: 4; /* push to next line */
+  }
+  .filter-scroll-wrapper {
+    max-width: calc(100vw - 120px); /* Leave room for radius selector */
+  }
+}
