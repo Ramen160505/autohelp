@@ -15,7 +15,7 @@ const SERVICES = [
 ];
 
 export default function Profile() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const [form, setForm] = useState({ name: '', car_brand: '', car_model: '', has_tow_hook: false });
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
