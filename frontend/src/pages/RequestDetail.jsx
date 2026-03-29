@@ -344,9 +344,17 @@ export default function RequestDetail() {
 }
 
 function UserWidget({ user, isMe }) {
+  const navigate = useNavigate();
   if (!user) return <div style={{ color: 'var(--color-text-3)', fontSize: 14 }}>Не призначено</div>;
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div 
+      style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', padding: '4px', borderRadius: '8px', transition: 'background 0.2s' }}
+      onClick={() => navigate(`/u/${user.id}`)}
+      onMouseEnter={e => e.currentTarget.style.background = 'var(--color-surface)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      title="Відкрити профіль водія"
+    >
       <div className="avatar" style={{ width: 46, height: 46, fontSize: 18 }}>{user.name?.[0] || '?'}</div>
       <div>
         <div style={{ fontWeight: 700, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

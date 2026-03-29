@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import History from './pages/History';
 import Admin from './pages/Admin';
 import Leaderboard from './pages/Leaderboard';
+import PublicProfile from './pages/PublicProfile';
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null }; }
@@ -56,6 +57,7 @@ export default function App() {
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+                <Route path="/u/:id" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ErrorBoundary>

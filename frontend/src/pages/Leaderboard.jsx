@@ -40,11 +40,17 @@ export default function Leaderboard() {
               else badge = <span style={{ fontSize: 18, width: 32, textAlign: 'center', color: 'var(--color-text-3)', fontWeight: 'bold' }}>#{index + 1}</span>;
 
               return (
-                <div key={user.id} style={{ 
+                <div key={user.id} 
+                  onClick={() => navigate(`/u/${user.id}`)}
+                  style={{ 
                   display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', 
                   borderBottom: '1px solid var(--color-border)',
                   background: index === 0 ? 'rgba(245, 158, 11, 0.05)' : 'transparent',
-                }}>
+                  cursor: 'pointer', transition: 'background 0.2s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = index === 0 ? 'rgba(245, 158, 11, 0.1)' : 'var(--color-surface)'}
+                  onMouseLeave={e => e.currentTarget.style.background = index === 0 ? 'rgba(245, 158, 11, 0.05)' : 'transparent'}
+                >
                   <div style={{ width: 40, display: 'flex', justifyContent: 'center' }}>{badge}</div>
                   
                   <div className="avatar" style={{ width: 48, height: 48, fontSize: 18 }}>
