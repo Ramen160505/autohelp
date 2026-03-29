@@ -91,7 +91,7 @@ export default function Navbar() {
         .bottom-navbar {
           position: fixed;
           bottom: 0; left: 0; right: 0;
-          height: 70px;
+          height: 85px;
           background: #0f172a;
           border-top: 1px solid #1e293b;
           display: flex;
@@ -110,23 +110,24 @@ export default function Navbar() {
           flex: 1;
           height: 100%;
           position: relative;
+          padding: 8px 0;
         }
         .nav-icon {
-          font-size: 24px;
-          margin-bottom: 2px;
+          font-size: 28px;
+          margin-bottom: 4px;
           transition: all 0.2s;
         }
         .bottom-nav-item.active .nav-icon {
-          transform: translateY(-2px);
+          transform: translateY(-3px) scale(1.1);
         }
         .nav-label {
-          font-size: 10px;
+          font-size: 12px;
           transition: all 0.2s;
         }
         .active-dot {
           position: absolute;
           top: 0;
-          width: 30px;
+          width: 36px;
           height: 3px;
           background: #f59e0b;
           border-radius: 0 0 4px 4px;

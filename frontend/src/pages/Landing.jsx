@@ -168,7 +168,7 @@ function AddressSearch({ onSelect }) {
       <div style={{ display: 'flex', gap: 4 }}>
         <input
           className="input"
-          style={{ padding: '8px 12px', width: 240, fontSize: 13 }}
+          style={{ padding: '10px 14px', width: 260, fontSize: 15 }}
           placeholder="🔍 Пошук адреси..."
           value={query}
           onChange={e => { setQuery(e.target.value); search(e.target.value); }}
@@ -284,15 +284,14 @@ export default function Landing() {
         <div className="filter-scroll-wrapper">
           {TYPES.map(t => (
             <button key={t.value} onClick={() => setFilter(f => ({ ...f, type: t.value }))}
-              className="btn btn-sm"
-              style={{ background: filter.type === t.value ? 'var(--color-primary)' : 'var(--color-surface)', color: filter.type === t.value ? '#000' : 'var(--color-text-2)', border: '1px solid var(--color-border)', whiteSpace: 'nowrap' }}>
+              style={{ background: filter.type === t.value ? 'var(--color-primary)' : 'var(--color-surface)', color: filter.type === t.value ? '#000' : 'var(--color-text-2)', border: '1px solid var(--color-border)', whiteSpace: 'nowrap', padding: '10px 16px', fontSize: 15, fontWeight: 600, borderRadius: 10, cursor: 'pointer' }}>
               {t.label}
             </button>
           ))}
         </div>
 
         {/* Radius */}
-        <select className="input" style={{ width: 'auto', padding: '6px 12px' }}
+        <select className="input" style={{ width: 'auto', padding: '10px 16px', fontSize: 15, fontWeight: 600 }}
           value={filter.radius} onChange={e => setFilter(f => ({ ...f, radius: e.target.value }))}>
           {[5, 10, 20, 50].map(r => <option key={r} value={r}>{r} км</option>)}
         </select>
@@ -307,13 +306,13 @@ export default function Landing() {
         {/* Right side */}
         <div className="landing-right-bar">
           <div style={{display: 'flex', gap: '6px'}}>
-            <button className={`btn btn-sm ${view === 'map' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('map')}>🗺️ Карта</button>
-            <button className={`btn btn-sm ${view === 'list' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setView('list')}>📋 Список</button>
+            <button className={`btn ${view === 'map' ? 'btn-primary' : 'btn-ghost'}`} style={{ padding: '10px 16px', fontSize: 15, fontWeight: 600 }} onClick={() => setView('map')}>🗺️ Карта</button>
+            <button className={`btn ${view === 'list' ? 'btn-primary' : 'btn-ghost'}`} style={{ padding: '10px 16px', fontSize: 15, fontWeight: 600 }} onClick={() => setView('list')}>📋 Список</button>
           </div>
-          <div className="req-count">
+          <div className="req-count" style={{ fontSize: 15 }}>
             {loading ? '...' : `${requests.length} заявок`}
           </div>
-          <button className="btn btn-primary btn-sm btn-create-req" onClick={() => navigate('/create')}>＋ Потрібна допомога</button>
+          <button className="btn btn-primary btn-create-req" style={{ padding: '12px 20px', fontSize: 15, fontWeight: 700 }} onClick={() => navigate('/create')}>＋ Потрібна допомога</button>
         </div>
       </div>
 
