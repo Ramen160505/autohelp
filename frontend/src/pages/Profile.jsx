@@ -197,6 +197,16 @@ export default function Profile() {
         )}
       </div>
 
+      <div style={{ marginTop: 32, paddingBottom: 64 }}>
+        <button 
+          onClick={logout} 
+          className="btn btn-danger btn-full btn-lg" 
+          style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: '#ef4444' }}
+        >
+          🚪 Вийти з акаунту
+        </button>
+      </div>
+
     </div>
   );
 }
