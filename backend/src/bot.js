@@ -41,7 +41,7 @@ if (token) {
     const APK_URL = process.env.APK_URL || '';
     const WEBAPP_URL = process.env.FRONTEND_URL || '';
 
-    const welcomeText = `🚗 <b>Ласкаво просимо до AutoHelp!</b>\n\nАвтоматична платформа допомоги на дорозі. Зламався? Кинь заявку — водії поруч побачать тебе на карті та приїдуть на допомогу!\n\n<b>Що вмію:</b>\n🔋 Прикурити акумулятор\n⛽ Долити пальне\n🔧 Замінити колесо\n⛓️ Відбуксирувати\n🛠️ Дрібний ремонт\n\n👇 <b>Обирай як відкрити:</b>`;
+    const welcomeText = `🚗 <b>Auto Help</b>\n\nАвтоматична платформа допомоги на дорозі. Зламався? Кинь заявку — водії поруч побачать тебе на карті та приїдуть на допомогу!\n\n👇 <b>Обирай як відкрити:</b>`;
 
     const keyboard = {
       inline_keyboard: [
@@ -56,7 +56,14 @@ if (token) {
 
     keyboard.inline_keyboard.push([{ text: '💬 Як це працює?', callback_data: 'how_it_works' }]);
 
-    await bot.sendMessage(chatId, welcomeText, { parse_mode: 'HTML', reply_markup: keyboard });
+    // Using generated nice banner
+    const photoStream = require('fs').createReadStream(require('path').join(__dirname, '../autohelp-banner.png'));
+
+    await bot.sendPhoto(chatId, photoStream, { 
+      caption: welcomeText, 
+      parse_mode: 'HTML', 
+      reply_markup: keyboard 
+    });
   });
 
   // Handle callback queries
