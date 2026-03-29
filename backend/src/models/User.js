@@ -27,6 +27,7 @@ const User = sequelize.define('User', {
   last_lng: { type: DataTypes.FLOAT },
   is_business: { type: DataTypes.BOOLEAN, defaultValue: false },
   business_name: { type: DataTypes.STRING },
+  balance: { type: DataTypes.FLOAT, defaultValue: 0.00 },
 }, { tableName: 'users', underscored: true });
 
 module.exports = User;
