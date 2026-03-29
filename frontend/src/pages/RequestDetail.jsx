@@ -317,7 +317,7 @@ export default function RequestDetail() {
                 zoomControl={false}
               >
                 <TileLayer 
-                  url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" 
+                  url="https://mt1.google.com/vt/lyrs=m&hl=uk&x={x}&y={y}&z={z}" 
                   attribution='© Google Maps' 
                   maxZoom={20}
                 />
