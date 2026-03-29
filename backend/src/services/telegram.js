@@ -10,9 +10,21 @@ function setupTelegram() {
     return null;
   }
 
+  const APP_URL = process.env.CLIENT_URL || 'https://autohelp-cflx2kyvn-ramen160505s-projects.vercel.app';
+  const CHAT_URL = process.env.CHAT_URL || 'https://t.me/autohelp_ua_test';
+
   bot = new TelegramBot(token, { polling: true });
 
   console.log('🤖 Telegram Bot запущено');
+
+  // Set persistent bottom Menu button
+  bot.setChatMenuButton({
+    menu_button: JSON.stringify({
+      type: 'web_app',
+      text: 'AutoHelp',
+      web_app: { url: APP_URL }
+    })
+  });
 
   bot.onText(/\/start (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
@@ -28,7 +40,13 @@ function setupTelegram() {
       user.telegram_verify_token = null; // consume token
       await user.save();
 
-      bot.sendMessage(chatId, `✅ Вітаю, ${user.name}! Ваш акаунт AutoHelp успішно підв'язано.\nТепер ви зможете отримувати миттєві сповіщення про нові поломки поруч із вами.`);
+      bot.sendMessage(chatId, `✅ Вітаю, ${user.name}! Ваш акаунт AutoHelp успішно підв'язано.\nТепер ви зможете отримувати миттєві сповіщення про нові поломки поруч із вами.`, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: 'Відкрити AutoHelp', web_app: { url: APP_URL } }]
+          ]
+        }
+      });
     } catch (err) {
       console.error('Bot Error:', err);
       bot.sendMessage(chatId, 'Помилка сервера.');
@@ -36,7 +54,15 @@ function setupTelegram() {
   });
 
   bot.onText(/\/start$/, (msg) => {
-    bot.sendMessage(msg.chat.id, 'Привіт! Щоб підключити сповіщення, перейдіть у свій профіль веб-додатка AutoHelp та натисніть кнопку "Підключити Telegram".');
+    bot.sendMessage(msg.chat.id, 'Привіт! Я — помічник спільноти **AutoHelp**. 🚗\n\nВідкривайте наш міні-додаток або долучайтеся до нашої Telegram-групи водіїв, щоб завжди бути на зв\'язку!', {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🚀 Відкрити Додаток', web_app: { url: APP_URL } }],
+          [{ text: '💬 Чат Спільноти AutoHelp', url: CHAT_URL }]
+        ]
+      }
+    });
   });
 
   return bot;
@@ -57,19 +83,25 @@ async function notifyHelpers(helpers, requestData) {
   const typeLabel = typeConfig[requestData.type] || typeConfig.other;
   const rewardLabel = requestData.reward_type === 'free' ? 'Безкоштовно' : requestData.reward_type === 'fixed' ? `${requestData.reward_amount} грн` : 'За домовленістю';
 
-  // В реальному житті тут буде хост продакшену
-  const url = `http://localhost:5173/request/${requestData.id}`;
+  const APP_URL = process.env.CLIENT_URL || 'https://autohelp-cflx2kyvn-ramen160505s-projects.vercel.app';
+  const url = `${APP_URL}/request/${requestData.id}`;
 
   const text = `🚨 *Потрібна допомога поруч!*\n\n` +
                `*Що сталося:* ${typeLabel}\n` +
                `*Винагорода:* ${rewardLabel}\n` +
-               `${requestData.description ? '*Коментар:* ' + requestData.description + '\n' : ''}\n` +
-               `[Відкрити заявку в додатку](${url})`;
+               `${requestData.description ? '*Коментар:* ' + requestData.description + '\n' : ''}`;
 
   for (const helper of helpers) {
     if (helper.telegram_id) {
       try {
-        await bot.sendMessage(helper.telegram_id, text, { parse_mode: 'Markdown', disable_web_page_preview: true });
+        await bot.sendMessage(helper.telegram_id, text, { 
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: '✅ Допомогти (Відкрити заявку)', web_app: { url } }]
+            ]
+          }
+        });
       } catch (e) {
         console.error(`Не вдалося надіслати повідомлення користувачу ${helper.telegram_id}:`, e.message);
       }

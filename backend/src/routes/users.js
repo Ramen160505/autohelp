@@ -16,7 +16,7 @@ router.post('/telegram-link', auth, async (req, res) => {
     user.telegram_verify_token = token;
     await user.save();
     
-    res.json({ token, bot_username: process.env.TELEGRAM_BOT_USERNAME || 'autohelp_ua_bot' });
+    res.json({ token, bot_username: process.env.TELEGRAM_BOT_USERNAME || 'the_auto_help_bot' });
   } catch (err) {
     res.status(500).json({ error: 'Помилка сервера' });
   }
