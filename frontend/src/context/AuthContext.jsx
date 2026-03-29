@@ -13,8 +13,15 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('autohelp_token');
     if (token) {
       client.get('/users/me')
-        .then(res => { setUser(res.data); localStorage.setItem('autohelp_user', JSON.stringify(res.data)); })
-        .catch(() => { localStorage.removeItem('autohelp_token'); localStorage.removeItem('autohelp_user'); setUser(null); })
+        .then(res => { 
+          setUser(res.data); 
+          localStorage.setItem('autohelp_user', JSON.stringify(res.data)); 
+        })
+        .catch((err) => { 
+          // Only clear user data from state if it's a 401 (handled by interceptor). 
+          // For network timeout/500, we keep whatever is in localStorage so they don't lose session!
+          console.warn('Could not verify user at startup:', err.message);
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
