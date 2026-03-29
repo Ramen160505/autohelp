@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Component } from 'react';
+import { Component, useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Navbar from './components/Navbar';
@@ -40,7 +40,44 @@ class ErrorBoundary extends Component {
   }
 }
 
+function SplashScreen({ onComplete }) {
+  useEffect(() => {
+    // Open Telegram Mini App to Full Height automatically
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.expand();
+      window.Telegram.WebApp.setHeaderColor('#0f172a'); // Match dark theme
+    }
+    const timer = setTimeout(onComplete, 3000);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: 'var(--color-bg)', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', zIndex: 999999
+    }}>
+      <div style={{ fontSize: 130, marginBottom: 10, animation: 'pulse-dot 2s infinite ease-out' }}>🚗</div>
+      <h1 style={{ 
+        fontSize: 46, fontWeight: 900, letterSpacing: -1,
+        background: 'linear-gradient(135deg, #f59e0b, #fbbf24)', 
+        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+        marginBottom: 40, textShadow: '0 4px 20px rgba(245,158,11,0.2)'
+      }}>
+        Auto Help
+      </h1>
+      <div className="spinner" style={{ width: 44, height: 44, borderTopColor: '#f59e0b', borderWidth: 4 }} />
+    </div>
+  );
+}
+
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
   return (
     <BrowserRouter>
       <AuthProvider>
