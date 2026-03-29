@@ -178,10 +178,18 @@ export default function Profile() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <p style={{ fontSize: 14, color: 'var(--color-text-2)', margin: 0 }}>Підключіть Telegram бота, щоб миттєво отримувати сповіщення, коли комусь знадобиться ваша допомога поруч.</p>
             <button onClick={async () => {
-              const res = await client.post('/users/telegram-link');
-              const link = `https://t.me/${res.data.bot_username}?start=${res.data.token}`;
-              window.open(link, '_blank');
-              setTimeout(() => window.location.reload(), 5000); // Reload after some time to see connected state
+              try {
+                const res = await client.post('/users/telegram-link');
+                const link = `https://t.me/${res.data.bot_username}?start=${res.data.token}`;
+                if (window.Telegram?.WebApp?.openTelegramLink) {
+                  window.Telegram.WebApp.openTelegramLink(link);
+                } else {
+                  window.location.href = link; // Fallback for normal browsers
+                }
+                setTimeout(() => window.location.reload(), 5000); // Reload after some time to see connected state
+              } catch (err) {
+                console.error("Failed to generate link:", err);
+              }
             }} className="btn" style={{ background: '#0088cc', color: '#fff' }}>
               Відкрити бота та підключити
             </button>
