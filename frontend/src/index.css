@@ -248,9 +248,10 @@ option { background: var(--color-bg-2); color: var(--color-text); }
 .leaflet-container { background: #e5e3df !important; }
 .leaflet-tile { 
   filter: none !important; 
-  /* Fix Chrome fractional scaling gap issue */
+  /* Fix Chrome/Safari fractional scaling gap issue */
   width: 257px !important; 
   height: 257px !important; 
+  outline: 1px solid transparent;
 }
 .leaflet-popup-content-wrapper {
   background: var(--color-bg-2) !important;

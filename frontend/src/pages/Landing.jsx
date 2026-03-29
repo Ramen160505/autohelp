@@ -291,7 +291,7 @@ export default function Landing() {
                   if (!navigator.geolocation) return alert('Ваш браузер не підтримує геолокацію.');
                   navigator.geolocation.getCurrentPosition(
                     pos => { const p = [pos.coords.latitude, pos.coords.longitude]; setUserPos(p); setFlyTo(p); },
-                    err => alert('Не вдалося визначити координати. Перевірте дозволи в браузері: ' + err.message),
+                    err => console.warn('Локацію не визначено автоматично:', err.message),
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                   );
                 }}
