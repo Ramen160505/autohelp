@@ -353,9 +353,14 @@ function UserWidget({ user, isMe }) {
           {user.name}
           {isMe && <span style={{ fontSize: 11, background: 'rgba(245,158,11,0.15)', color: 'var(--color-primary)', padding: '2px 8px', borderRadius: 4 }}>Ви</span>}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 13, color: 'var(--color-text-2)' }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 4, fontSize: 13, color: 'var(--color-text-2)', flexWrap: 'wrap' }}>
           <span>⭐ {user.rating != null ? Number(user.rating).toFixed(1) : '—'}</span>
-          {user.car_brand && <span>🚘 {user.car_brand} {user.car_model}</span>}
+          {user.car_brand && (
+            <span>
+              🚘 {user.car_color ? `${user.car_color} ` : ''}{user.car_brand} {user.car_model}
+              {user.car_plate ? ` [${user.car_plate}]` : ''}
+            </span>
+          )}
         </div>
       </div>
     </div>

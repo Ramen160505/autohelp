@@ -25,7 +25,14 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      setForm({ name: user.name || '', car_brand: user.car_brand || '', car_model: user.car_model || '', has_tow_hook: user.has_tow_hook || false });
+      setForm({ 
+        name: user.name || '', 
+        car_brand: user.car_brand || '', 
+        car_model: user.car_model || '', 
+        car_color: user.car_color || '',
+        car_plate: user.car_plate || '',
+        has_tow_hook: user.has_tow_hook || false 
+      });
       setServices(user.services_offered || []);
     }
   }, [user]);
@@ -87,24 +94,41 @@ export default function Profile() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div className="input-group">
                 <label className="input-label">Ім'я</label>
                 <input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
               </div>
-              <CarSelector
-                brand={form.car_brand}
-                model={form.car_model}
-                onBrandChange={v => setForm(f => ({ ...f, car_brand: v, car_model: '' }))}
-                onModelChange={v => setForm(f => ({ ...f, car_model: v }))}
-              />
-              <label style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer' }}>
-                <input type="checkbox" checked={form.has_tow_hook} onChange={e => setForm(f => ({ ...f, has_tow_hook: e.target.checked }))}
-                  style={{ width: 18, height: 18, accentColor: 'var(--color-primary)' }} />
-                <span style={{ fontSize: 14 }}>⛓️ Є фаркоп (можу буксирувати)</span>
-              </label>
             </div>
-          </div>
+            
+            <div style={{ padding: '16px 0', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', margin: '16px 0' }}>
+              <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 16 }}>🚘 Мій Гараж</div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <CarSelector
+                  brand={form.car_brand}
+                  model={form.car_model}
+                  onBrandChange={v => setForm(f => ({ ...f, car_brand: v, car_model: '' }))}
+                  onModelChange={v => setForm(f => ({ ...f, car_model: v }))}
+                />
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="input-group">
+                    <label className="input-label" style={{ fontSize: 11 }}>Колір авто</label>
+                    <input className="input" placeholder="Напр. Сріблястий" value={form.car_color || ''} onChange={e => setForm(f => ({ ...f, car_color: e.target.value }))} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label" style={{ fontSize: 11 }}>Держ. номер</label>
+                    <input className="input" placeholder="AA1234PA" value={form.car_plate || ''} onChange={e => setForm(f => ({ ...f, car_plate: e.target.value.toUpperCase() }))} />
+                  </div>
+                </div>
+
+                <label style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer', marginTop: 8 }}>
+                  <input type="checkbox" checked={form.has_tow_hook} onChange={e => setForm(f => ({ ...f, has_tow_hook: e.target.checked }))}
+                    style={{ width: 18, height: 18, accentColor: 'var(--color-primary)' }} />
+                  <span style={{ fontSize: 14 }}>⛓️ Є фаркоп (можу буксирувати)</span>
+                </label>
+              </div>
+            </div>
 
           {/* Services */}
           <div className="glass" style={{ padding: 20 }}>

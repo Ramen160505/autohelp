@@ -35,6 +35,7 @@ export default function Navbar() {
     { to: '/', label: '🗺️ Карта' },
     { to: '/create', label: '＋ Допомога' },
     { to: '/history', label: '📋 Історія' },
+    { to: '/leaderboard', label: '🏆 Зал Слави' },
     { to: '/profile', label: '👤 Профіль' },
     ...(user?.is_admin ? [{ to: '/admin', label: '🛡️ Адмін' }] : []),
   ];
