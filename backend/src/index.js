@@ -6,6 +6,7 @@ const cors = require('cors');
 const sequelize = require('./config/database');
 const User = require('./models/User');
 const Request = require('./models/Request');
+const Transaction = require('./models/Transaction');
 const { Chat, Message } = require('./models/Chat');
 const { Rating, Complaint } = require('./models/Rating');
 
@@ -15,7 +16,9 @@ const requestsRoutes = require('./routes/requests');
 const ratingsRoutes = require('./routes/ratings');
 const complaintsRoutes = require('./routes/complaints');
 const chatsRoutes = require('./routes/chats');
+const walletRoutes = require('./routes/wallet');
 const setupSocket = require('./socket/index');
+const { bot } = require('./bot');
 
 const fs = require('fs');
 const path = require('path');
@@ -58,6 +61,7 @@ app.use('/api/requests', requestsRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/complaints', complaintsRoutes);
 app.use('/api/chats', chatsRoutes);
+app.use('/api/wallet', walletRoutes);
 
 // Admin routes (via complaints router)
 app.get('/api/admin/users', async (req, res) => {

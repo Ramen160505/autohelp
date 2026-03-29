@@ -37,14 +37,19 @@ router.post('/', auth, async (req, res) => {
 
     // Notify nearby helpers via Telegram asynchronously
     try {
-      const { notifyHelpers } = require('../services/telegram');
+      const { sendProximityAlert } = require('../bot');
+      const searchRadius = 20; // Forced 20km for start
       const allUsers = await User.findAll({ where: { is_admin: false, id: { [require('sequelize').Op.ne]: req.user.id } } });
       const nearbyHelpers = allUsers.filter(u => {
         if (!u.telegram_id || !u.last_lat || !u.last_lng) return false;
-        // Check if helper is within the request's radius
-        return distance(latitude, longitude, u.last_lat, u.last_lng) <= (radius_km || 10);
+        const dist = distance(latitude, longitude, u.last_lat, u.last_lng);
+        u.calc_distance = dist;
+        return dist <= searchRadius;
       });
-      if (nearbyHelpers.length > 0) notifyHelpers(nearbyHelpers, request);
+      
+      nearbyHelpers.forEach(h => {
+        sendProximityAlert(h.telegram_id, request, h.calc_distance);
+      });
     } catch (notifyErr) {
       console.error('Error notifying helpers:', notifyErr);
     }
