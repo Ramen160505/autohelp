@@ -1,27 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import ChatPanel from '../components/ChatPanel';
 import StarRating from '../components/StarRating';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
-// Fix missing marker icons in leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+function createEmojiMarker(emoji, color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:40px;height:40px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">
+      <span style="transform:rotate(45deg);font-size:16px;display:block;">${emoji}</span>
+    </div>`,
+    iconSize: [40, 40], iconAnchor: [20, 40],
+  });
+}
 
-const helperIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3204/3204121.png',
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
-});
+function MapAutoZoom({ pos1, pos2 }) {
+  const map = useMap();
+  useEffect(() => {
+    if (pos1 && pos2) {
+      const bounds = L.latLngBounds([pos1, pos2]);
+      map.fitBounds(bounds, { padding: [20, 20], maxZoom: 16 });
+    } else if (pos1) {
+      map.flyTo(pos1, 14);
+    }
+  }, [map, pos1, pos2]);
+  return null;
+}
 
 const TYPE_CONFIG = {
   battery: { icon: '🔋', label: 'Акумулятор', color: '#f59e0b' },
@@ -63,17 +71,14 @@ export default function RequestDetail() {
   const [showComplaint, setShowComplaint] = useState(false);
   const [complaintReason, setComplaintReason] = useState('');
   const [notification, setNotification] = useState('');
-  const [helperLiveLoc, setHelperLiveLoc] = useState(null);
+
+  const [helperPos, setHelperPos] = useState(null);
+  const watchIdRef = useRef(null);
 
   const fetchRequest = async () => {
     try {
       const res = await client.get(`/requests/${id}`);
       setRequest(res.data);
-      if (res.data.status === 'completed' && user) {
-        const ratingsRes = await client.get(`/ratings/request/${id}`);
-        const userRated = ratingsRes.data.some(r => r.from_user_id === user.id);
-        setRatingDone(userRated);
-      }
     } catch (err) {
       setError(err.response?.data?.error || 'Заявку не знайдено');
     } finally {
@@ -83,9 +88,49 @@ export default function RequestDetail() {
 
   useEffect(() => { fetchRequest(); }, [id]);
 
+  // ✅ Live GPS Tracking Logic
+  useEffect(() => {
+    // If I am the helper and the request is taken, start sending my GPS to socket
+    const isHelperActive = request?.status === 'taken' && request?.helper_id === user?.id;
+    
+    if (isHelperActive && navigator.geolocation) {
+      if (!watchIdRef.current) {
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          pos => {
+            const { latitude: lat, longitude: lng, heading } = pos.coords;
+            setHelperPos([lat, lng]);
+            socket?.emit('location_update', { request_id: id, lat, lng, heading });
+          },
+          err => console.warn('GPS error', err),
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+      }
+    } else {
+      // Stop tracking if status changes or not helper
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    }
+
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [request?.status, request?.helper_id, user?.id, socket, id]);
+
   // ✅ Real-time socket listeners for status changes
   useEffect(() => {
     if (!socket || !id) return;
+
+    const onHelperMoving = ({ lat, lng }) => {
+      // If I am NOT the helper, update the helper's position on my map!
+      if (request?.helper_id !== user?.id) {
+        setHelperPos([lat, lng]);
+      }
+    };
 
     const onRequestTaken = ({ request_id, helper_name }) => {
       if (request_id !== id) return;
@@ -98,10 +143,6 @@ export default function RequestDetail() {
       fetchRequest();
     };
 
-    const onHelperMoving = ({ lat, lng }) => {
-      setHelperLiveLoc([lat, lng]);
-    };
-
     socket.on('request_taken', onRequestTaken);
     socket.on('completed', onCompleted);
     socket.on('helper_moving', onHelperMoving);
@@ -111,29 +152,7 @@ export default function RequestDetail() {
       socket.off('completed', onCompleted);
       socket.off('helper_moving', onHelperMoving);
     };
-  }, [socket, id]);
-
-  // Record helper location if I am the helper
-  useEffect(() => {
-    if (!request || !socket || !user) return;
-    const isHelper = request.helper_id === user.id;
-    if (isHelper && request.status === 'taken' && navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        pos => {
-          socket.emit('location_update', { 
-            request_id: request.id, 
-            user_id: user.id, 
-            lat: pos.coords.latitude, 
-            lng: pos.coords.longitude 
-          });
-          setHelperLiveLoc([pos.coords.latitude, pos.coords.longitude]);
-        }, 
-        err => console.error('GPS Watch error', err), 
-        { enableHighAccuracy: true, maximumAge: 5000 }
-      );
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, [request, socket, user]);
+  }, [socket, id, request?.helper_id, user?.id]);
 
   if (loading) {
     return (
@@ -286,43 +305,48 @@ export default function RequestDetail() {
             </div>
           )}
 
-          {/* Location & Live Tracker */}
-          <div className="glass" style={{ overflow: 'hidden', paddingBottom: 16 }}>
-            <div style={{ padding: 16, paddingBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📍 Місце та Live GPS</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <a href={wazeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#1fb5cf', color: '#fff', border: 'none' }}>
-                  Waze навігатор 🚗
-                </a>
-                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#4285F4', color: '#fff', border: 'none' }}>
-                  Google Maps 🗺️
-                </a>
-              </div>
-            </div>
-            {/* Live Map */}
-            <div style={{ height: 200, width: '100%', background: 'var(--color-surface)', position: 'relative' }}>
+          {/* Location */}
+          <div className="glass" style={{ padding: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📍 Місце поломки (Координати)</div>
+            
+            <div style={{ height: 200, width: '100%', borderRadius: 12, overflow: 'hidden', marginBottom: 12, position: 'relative' }}>
               <MapContainer 
                 center={[request.latitude, request.longitude]} 
                 zoom={14} 
-                style={{ height: '100%', width: '100%', zIndex: 1 }}
+                style={{ height: '100%', width: '100%' }}
                 zoomControl={false}
               >
                 <TileLayer 
-                  url={localStorage.getItem('theme') === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'} 
+                  url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" 
+                  attribution='© Google Maps' 
+                  maxZoom={20}
                 />
+                <Marker position={[request.latitude, request.longitude]} icon={createEmojiMarker(cfg.icon, cfg.color)} />
                 
-                {/* Broken Car Marker */}
-                <Marker position={[request.latitude, request.longitude]}>
-                  <Popup>Місце поломки</Popup>
-                </Marker>
-
-                {/* Live Helper Marker */}
-                {helperLiveLoc && (
-                  <Marker position={helperLiveLoc} icon={helperIcon} zIndexOffset={1000}>
-                    <Popup>Помічник їде до вас!</Popup>
-                  </Marker>
+                {/* Live GPS Tracker Marker */}
+                {helperPos && (
+                  <>
+                    <Marker position={helperPos} icon={createEmojiMarker('🚗', '#10b981')} />
+                    <Polyline positions={[[request.latitude, request.longitude], helperPos]} color="#1fb5cf" weight={4} dashArray="5, 10" />
+                  </>
                 )}
+                
+                <MapAutoZoom pos1={[request.latitude, request.longitude]} pos2={helperPos} />
               </MapContainer>
+              {helperPos && (
+                <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 1000, background: 'var(--color-success)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 8px', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="pulsing-dot" style={{ width: 8, height: 8, background: '#fff', borderRadius: '50%', display: 'inline-block' }} /> Live GPS
+                </div>
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              <a href={wazeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#1fb5cf', color: '#fff', border: 'none' }}>
+                Поїхали з Waze 🚗
+              </a>
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm" style={{ flex: 1, background: '#4285F4', color: '#fff', border: 'none' }}>
+                Google Maps 🗺️
+              </a>
             </div>
           </div>
 

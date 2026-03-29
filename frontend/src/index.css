@@ -224,6 +224,27 @@ option { background: var(--color-bg-2); color: var(--color-text); }
 .star.empty { color: var(--color-text-3); }
 
 /* ---- Leaflet overrides ---- */
+.leaflet-marker-icon { background: none; border: none; }
+.leaflet-popup-content-wrapper { border-radius: 16px; overflow: hidden; }
+.leaflet-popup-content { margin: 12px; }
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+.pulsing-dot {
+  position: relative;
+}
+.pulsing-dot::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulse-dot 1.5s infinite ease-out;
+}
+
 .leaflet-container { background: #1a2035 !important; }
 .leaflet-tile { filter: brightness(0.8) saturate(0.7); }
 .leaflet-popup-content-wrapper {

@@ -77,11 +77,40 @@ router.get('/leaderboard', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
-      attributes: { exclude: ['sms_code', 'sms_code_expires'] },
+      attributes: { exclude: ['sms_code', 'sms_code_expires', 'phone'] }, // Also exclude phone for public
     });
     if (!user) return res.status(404).json({ error: 'Не знайдено' });
-    res.json(user);
+
+    // Fetch reviews where this user is the target, and length of comment > 0
+    const { Rating } = require('../models/Rating');
+    const { Op } = require('sequelize');
+    const reviewsData = await Rating.findAll({ 
+      where: { 
+        to_user_id: user.id,
+        comment: { [Op.not]: null, [Op.ne]: '' }
+      },
+      order: [['created_at', 'DESC']],
+      limit: 20
+    });
+
+    // Populate fromUser names
+    const reviews = await Promise.all(reviewsData.map(async r => {
+      const fromUser = await User.findByPk(r.from_user_id, { attributes: ['name', 'avatar_url'] });
+      return {
+        id: r.id,
+        score: r.score,
+        comment: r.comment,
+        created_at: r.created_at,
+        from_user: fromUser || { name: 'Анонім' }
+      };
+    }));
+
+    const responseData = user.toJSON();
+    responseData.reviews = reviews;
+
+    res.json(responseData);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Помилка сервера' });
   }
 });

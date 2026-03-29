@@ -59,6 +59,13 @@ module.exports = (io) => {
       console.log(`🚗 Helper ${user_id} arrived for request ${request_id}`);
     });
 
+    // Handle live GPS tracking updates
+    socket.on('location_update', ({ request_id, lat, lng, heading }) => {
+      if (request_id && lat && lng) {
+        io.to(`request_${request_id}`).emit('helper_moving', { lat, lng, heading });
+      }
+    });
+
     socket.on('disconnect', () => {
       console.log('🔌 Socket disconnected:', socket.id);
     });

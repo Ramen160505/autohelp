@@ -272,8 +272,11 @@ export default function Landing() {
         {view === 'map' && (
           <div style={{ flex: 1, position: 'relative' }}>
             <MapContainer center={userPos || defaultCenter} zoom={12} style={{ height: '100%', width: '100%' }}>
+              {/* Google Maps Streets Tile Layer */}
               <TileLayer 
-                url={localStorage.getItem('theme') === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'} 
+                url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" 
+                attribution='© Google Maps' 
+                maxZoom={20}
               />
               <LocationMarker userPos={userPos} setUserPos={setUserPos} />
               <ClusteredMarkers requests={requests} navigate={navigate} />
