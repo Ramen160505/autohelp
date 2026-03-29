@@ -18,6 +18,11 @@
       // Force expand immediately before React loads
       if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.expand();
+        try { 
+          if (window.Telegram.WebApp.requestFullscreen) {
+            window.Telegram.WebApp.requestFullscreen(); 
+          }
+        } catch(e) {}
         window.Telegram.WebApp.ready();
       }
     </script>
