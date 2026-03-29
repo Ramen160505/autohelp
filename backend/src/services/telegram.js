@@ -10,7 +10,7 @@ function setupTelegram() {
     return null;
   }
 
-  const APP_URL = process.env.CLIENT_URL || 'https://autohelp-cflx2kyvn-ramen160505s-projects.vercel.app';
+  const APP_URL = process.env.CLIENT_URL || 'https://autohelp-brown.vercel.app';
   const CHAT_URL = process.env.CHAT_URL || 'https://t.me/autohelp_ua_test';
 
   bot = new TelegramBot(token, { polling: true });
@@ -83,7 +83,7 @@ async function notifyHelpers(helpers, requestData) {
   const typeLabel = typeConfig[requestData.type] || typeConfig.other;
   const rewardLabel = requestData.reward_type === 'free' ? 'Безкоштовно' : requestData.reward_type === 'fixed' ? `${requestData.reward_amount} грн` : 'За домовленістю';
 
-  const APP_URL = process.env.CLIENT_URL || 'https://autohelp-cflx2kyvn-ramen160505s-projects.vercel.app';
+  const APP_URL = process.env.CLIENT_URL || 'https://autohelp-brown.vercel.app';
   const url = `${APP_URL}/request/${requestData.id}`;
 
   const text = `🚨 *Потрібна допомога поруч!*\n\n` +
