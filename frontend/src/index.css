@@ -151,6 +151,7 @@ img { max-width: 100%; }
 }
 .input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-glow); }
 .input::placeholder { color: var(--color-text-3); }
+option { background: var(--color-bg-2); color: var(--color-text); }
 
 .input-group { display: flex; flex-direction: column; gap: 6px; }
 .input-label { font-size: 13px; font-weight: 600; color: var(--color-text-2); letter-spacing: 0.5px; text-transform: uppercase; }
