@@ -27,9 +27,9 @@ router.post('/register', async (req, res) => {
       user = await User.create({ phone, name, car_brand, car_model, has_tow_hook, sms_code: code, sms_code_expires: expires });
     }
 
-    // MVP: log code to console instead of real SMS
+    // MVP: log code to console and send to frontend
     console.log(`\n📱 SMS КОД для ${phone}: ${code}\n`);
-    res.json({ message: 'SMS-код надіслано', phone, dev_code: process.env.NODE_ENV === 'development' ? code : undefined });
+    res.json({ message: 'SMS-код надіслано', phone, dev_code: code });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Помилка сервера' });
@@ -70,7 +70,7 @@ router.post('/login', async (req, res) => {
     await user.save();
 
     console.log(`\n📱 SMS КОД для ${phone}: ${code}\n`);
-    res.json({ message: 'SMS-код надіслано', phone, dev_code: process.env.NODE_ENV === 'development' ? code : undefined });
+    res.json({ message: 'SMS-код надіслано', phone, dev_code: code });
   } catch (err) {
     res.status(500).json({ error: 'Помилка сервера' });
   }
