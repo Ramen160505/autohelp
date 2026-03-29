@@ -246,7 +246,12 @@ option { background: var(--color-bg-2); color: var(--color-text); }
 }
 
 .leaflet-container { background: #e5e3df !important; }
-.leaflet-tile { filter: none !important; margin-top: -1px; margin-left: -1px; padding-right: 1px; padding-bottom: 1px; }
+.leaflet-tile { 
+  filter: none !important; 
+  /* Fix Chrome fractional scaling gap issue */
+  width: 257px !important; 
+  height: 257px !important; 
+}
 .leaflet-popup-content-wrapper {
   background: var(--color-bg-2) !important;
   color: var(--color-text) !important;
