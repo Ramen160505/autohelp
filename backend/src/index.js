@@ -100,28 +100,30 @@ setupTelegram();
 const PORT = process.env.PORT || 3001;
 
 async function start() {
-  await sequelize.sync({ alter: true });
-  console.log('✅ База даних синхронізована');
-
-  // Create admin user if not exists
-  const adminPhone = '+380000000000';
-  let admin = await User.findOne({ where: { phone: adminPhone } });
-  if (!admin) {
-    admin = await User.create({
-      phone: adminPhone,
-      name: 'Адміністратор',
-      is_admin: true,
-      is_verified: true,
-      sms_code: '0000',
-      sms_code_expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    });
-    console.log('👤 Адмін створений: phone=+380000000000, code=0000');
-  }
-
-  server.listen(PORT, () => {
-    console.log(`🚀 AutoHelp сервер запущено на http://localhost:${PORT}`);
-    console.log(`📱 Адмін: +380000000000, код: 0000`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 AutoHelp сервер запущено на порту ${PORT}`);
   });
+
+  try {
+    await sequelize.sync({ alter: true });
+    console.log('✅ База даних синхронізована');
+
+    const adminPhone = '+380000000000';
+    let admin = await User.findOne({ where: { phone: adminPhone } });
+    if (!admin) {
+      admin = await User.create({
+        phone: adminPhone,
+        name: 'Адміністратор',
+        is_admin: true,
+        is_verified: true,
+        sms_code: '0000',
+        sms_code_expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      });
+      console.log('👤 Адмін створений: phone=+380000000000, code=0000');
+    }
+  } catch (error) {
+    console.error('❌ Помилка бази даних:', error);
+  }
 }
 
 start().catch(console.error);
