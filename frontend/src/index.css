@@ -245,8 +245,8 @@ option { background: var(--color-bg-2); color: var(--color-text); }
   animation: pulse-dot 1.5s infinite ease-out;
 }
 
-.leaflet-container { background: #1a2035 !important; }
-.leaflet-tile { filter: brightness(0.8) saturate(0.7); }
+.leaflet-container { background: #e5e3df !important; }
+.leaflet-tile { filter: none !important; margin-top: -1px; margin-left: -1px; padding-right: 1px; padding-bottom: 1px; }
 .leaflet-popup-content-wrapper {
   background: var(--color-bg-2) !important;
   color: var(--color-text) !important;
