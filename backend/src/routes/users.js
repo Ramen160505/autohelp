@@ -39,11 +39,13 @@ router.get('/me', auth, async (req, res) => {
 
 router.put('/me', auth, async (req, res) => {
   try {
-    const { name, car_brand, car_model, has_tow_hook, services_offered, avatar_url, last_lat, last_lng } = req.body;
+    const { name, car_brand, car_model, car_color, car_plate, has_tow_hook, services_offered, avatar_url, last_lat, last_lng } = req.body;
     const user = req.user;
     if (name) user.name = name;
     if (car_brand !== undefined) user.car_brand = car_brand;
     if (car_model !== undefined) user.car_model = car_model;
+    if (car_color !== undefined) user.car_color = car_color;
+    if (car_plate !== undefined) user.car_plate = car_plate;
     if (has_tow_hook !== undefined) user.has_tow_hook = has_tow_hook;
     if (services_offered !== undefined) user.services_offered = services_offered;
     if (avatar_url !== undefined) user.avatar_url = avatar_url;
@@ -53,6 +55,22 @@ router.put('/me', auth, async (req, res) => {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: 'Помилка сервера' });
+  }
+});
+
+router.get('/leaderboard', auth, async (req, res) => {
+  try {
+    const topUsers = await User.findAll({
+      order: [
+        ['help_count', 'DESC'],
+        ['rating', 'DESC']
+      ],
+      limit: 10,
+      attributes: ['id', 'name', 'avatar_url', 'rating', 'help_count', 'car_brand', 'car_model']
+    });
+    res.json(topUsers);
+  } catch (err) {
+    res.status(500).json({ error: 'Помилка завантаження рейтингу' });
   }
 });
 

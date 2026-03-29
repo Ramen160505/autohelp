@@ -10,6 +10,8 @@ const User = sequelize.define('User', {
   help_count: { type: DataTypes.INTEGER, defaultValue: 0 },
   car_brand: { type: DataTypes.STRING },
   car_model: { type: DataTypes.STRING },
+  car_color: { type: DataTypes.STRING },
+  car_plate: { type: DataTypes.STRING },
   has_tow_hook: { type: DataTypes.BOOLEAN, defaultValue: false },
   services_offered: { type: DataTypes.TEXT, defaultValue: '[]',
     get() { try { return JSON.parse(this.getDataValue('services_offered')); } catch { return []; } },
