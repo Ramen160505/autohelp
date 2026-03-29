@@ -101,6 +101,8 @@ export default function CreateRequest() {
   const [description, setDescription] = useState('');
   const [rewardType, setRewardType] = useState('negotiable');
   const [rewardAmount, setRewardAmount] = useState('');
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -120,10 +122,21 @@ export default function CreateRequest() {
     if (!type || !position) return;
     setLoading(true); setError('');
     try {
+      let photoUrl = null;
+      if (photo) {
+        const formData = new FormData();
+        formData.append('photo', photo);
+        const uploadRes = await client.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        photoUrl = uploadRes.data.url;
+      }
+
       const res = await client.post('/requests', {
         type, latitude: position[0], longitude: position[1],
         description, reward_type: rewardType,
         reward_amount: rewardType === 'fixed' ? parseInt(rewardAmount) : null,
+        photo_url: photoUrl
       });
       navigate(`/request/${res.data.id}`);
     } catch (err) {
@@ -231,6 +244,41 @@ export default function CreateRequest() {
       {/* Step 3 — Details */}
       {step === 3 && (
         <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          
+          <div className="input-group">
+            <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Фото поломки (необов'язково)</span>
+            </label>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <button 
+                type="button" 
+                className="btn btn-sm" 
+                style={{ flex: 1, padding: '14px', border: '1px dashed var(--color-border)', background: 'transparent', color: 'var(--color-text-2)' }}
+                onClick={() => document.getElementById('photo-upload').click()}
+              >
+                {photo ? '📸 Змінити фото' : '📸 Додати фото'}
+              </button>
+              <input 
+                id="photo-upload" 
+                type="file" 
+                accept="image/*" 
+                style={{ display: 'none' }} 
+                onChange={e => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setPhoto(file);
+                    setPhotoPreview(URL.createObjectURL(file));
+                  }
+                }} 
+              />
+              {photoPreview && (
+                <div style={{ width: 48, height: 48, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--color-border)', flexShrink: 0 }}>
+                  <img src={photoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="input-group">
             <label className="input-label">Коментар (необов'язково)</label>
             <textarea className="input" style={{ minHeight: 90, resize: 'vertical' }}

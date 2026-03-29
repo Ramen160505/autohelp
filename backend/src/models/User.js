@@ -25,6 +25,8 @@ const User = sequelize.define('User', {
   telegram_verify_token: { type: DataTypes.STRING },
   last_lat: { type: DataTypes.FLOAT },
   last_lng: { type: DataTypes.FLOAT },
+  is_business: { type: DataTypes.BOOLEAN, defaultValue: false },
+  business_name: { type: DataTypes.STRING },
 }, { tableName: 'users', underscored: true });
 
 module.exports = User;

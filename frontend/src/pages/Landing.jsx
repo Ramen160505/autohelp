@@ -95,6 +95,49 @@ function ClusteredMarkers({ requests, navigate }) {
   return null;
 }
 
+// Business markers layer
+function BusinessMarkers({ users, navigate }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const group = new MarkerClusterGroup({
+      maxClusterRadius: 40,
+    });
+
+    users.forEach(u => {
+      if (!u.last_lat || !u.last_lng) return;
+      const marker = L.marker([u.last_lat, u.last_lng], { 
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="width:44px;height:44px;border-radius:12px;background:#1e293b;border:2px solid #f59e0b;box-shadow:0 4px 12px rgba(245,158,11,0.5);display:flex;align-items:center;justify-content:center;position:relative;">
+            <span style="font-size:24px;display:block;">🚜</span>
+            <div style="position:absolute;bottom:-6px;right:-6px;background:#f59e0b;border-radius:50%;width:14px;height:14px;border:2px solid #1e293b"></div>
+          </div>`,
+          iconSize: [44, 44], iconAnchor: [22, 44],
+        }) 
+      });
+      const popup = L.popup({ minWidth: 220 }).setContent(`
+        <div style="font-family:system-ui;padding:4px">
+          <div style="font-weight:800;font-size:16px;margin-bottom:6px;color:#ea580c">🚜 ${u.business_name || 'СТО / Евакуатор'}</div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:6px;color:#64748b">${u.name}</div>
+          <div style="font-size:13px;margin-bottom:12px;color:#94a3b8">⭐ ${u.rating?.toFixed(1) || 'Новий'} • <span style="font-family:monospace">${u.phone}</span></div>
+          <a href="tel:${u.phone.replace(/[^0-9+]/g, '')}" style="background:#10b981;color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700;display:block;text-align:center;text-decoration:none;font-size:14px;box-shadow:0 4px 12px rgba(16,185,129,0.3)">📞 Зателефонувати</a>
+        </div>
+      `);
+      marker.bindPopup(popup);
+      group.addLayer(marker);
+    });
+
+    map.addLayer(group);
+
+    return () => {
+      map.removeLayer(group);
+    };
+  }, [map, users]);
+
+  return null;
+}
+
 // Address search with Nominatim
 function AddressSearch({ onSelect }) {
   const [query, setQuery] = useState('');
@@ -162,6 +205,7 @@ export default function Landing() {
   const socket = useSocket();
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
+  const [businessUsers, setBusinessUsers] = useState([]);
   const [userPos, setUserPos] = useState(null);
   const [flyTo, setFlyTo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -174,8 +218,14 @@ export default function Landing() {
       const params = { radius: filter.radius };
       if (userPos) { params.lat = userPos[0]; params.lng = userPos[1]; }
       if (filter.type) params.type = filter.type;
-      const res = await client.get('/requests', { params });
+      
+      const [res, busRes] = await Promise.all([
+        client.get('/requests', { params }),
+        client.get('/users/business')
+      ]);
+      
       setRequests(res.data);
+      setBusinessUsers(busRes.data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   }, [filter, userPos]);
@@ -280,6 +330,7 @@ export default function Landing() {
               />
               <LocationMarker userPos={userPos} setUserPos={setUserPos} />
               <ClusteredMarkers requests={requests} navigate={navigate} />
+              <BusinessMarkers users={businessUsers} navigate={navigate} />
               {flyTo && <FlyToLocation pos={flyTo} />}
             </MapContainer>
 

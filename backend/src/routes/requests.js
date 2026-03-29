@@ -19,12 +19,12 @@ function distance(lat1, lon1, lat2, lon2) {
 // Create request
 router.post('/', auth, async (req, res) => {
   try {
-    const { type, latitude, longitude, description, reward_type, reward_amount, radius_km } = req.body;
+    const { type, latitude, longitude, description, reward_type, reward_amount, radius_km, photo_url } = req.body;
     if (!type || !latitude || !longitude) return res.status(400).json({ error: 'Тип та місцезнаходження обов\'язкові' });
     const request = await Request.create({
       user_id: req.user.id, type, latitude, longitude,
       description, reward_type: reward_type || 'negotiable',
-      reward_amount, radius_km: radius_km || 10,
+      reward_amount, radius_km: radius_km || 10, photo_url
     });
     // Create chat for this request
     await Chat.create({ request_id: request.id });

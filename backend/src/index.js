@@ -17,6 +17,10 @@ const complaintsRoutes = require('./routes/complaints');
 const chatsRoutes = require('./routes/chats');
 const setupSocket = require('./socket/index');
 
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -27,6 +31,25 @@ app.set('io', io);
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+
+// Setup static uploads folder
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+app.use('/uploads', express.static(uploadsDir));
+
+// Multer photo upload config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${Math.round(Math.random()*1E9)}${path.extname(file.originalname)}`)
+});
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// Upload route
+app.post('/api/upload', upload.single('photo'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Файл не завантажено' });
+  const photoUrl = `/uploads/${req.file.filename}`;
+  res.json({ url: photoUrl });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -48,6 +71,24 @@ app.get('/api/admin/users', async (req, res) => {
     const users = await User.findAll({ attributes: { exclude: ['sms_code', 'sms_code_expires'] }, order: [['created_at', 'DESC']] });
     res.json(users);
   } catch (err) { res.status(401).json({ error: 'Помилка авторизації' }); }
+});
+
+app.put('/api/admin/users/:id/business', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
+    const adminUser = await User.findByPk(decoded.id);
+    if (!adminUser || !adminUser.is_admin) return res.status(403).json({ error: 'Немає доступу' });
+    
+    const targetUser = await User.findByPk(req.params.id);
+    if (!targetUser) return res.status(404).json({ error: 'Користувача не знайдено' });
+    
+    targetUser.is_business = !targetUser.is_business;
+    if (targetUser.is_business) targetUser.business_name = req.body.business_name || 'Евакуатор / СТО';
+    await targetUser.save();
+    res.json(targetUser);
+  } catch (err) { res.status(500).json({ error: 'Помилка сервера' }); }
 });
 
 app.get('/api/admin/requests', async (req, res) => {

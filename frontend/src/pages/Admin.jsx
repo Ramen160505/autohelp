@@ -33,6 +33,13 @@ export default function Admin() {
     setComplaints(prev => prev.map(c => c.id === id ? { ...c, status } : c));
   };
 
+  const toggleBusiness = async (id, currentStatus) => {
+    try {
+      const res = await client.put(`/admin/users/${id}/business`);
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, is_business: res.data.is_business, business_name: res.data.business_name } : u));
+    } catch (err) { alert('Помилка оновлення статусу бізнесу'); }
+  };
+
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}><div className="spinner" style={{ width: 40, height: 40 }} /></div>;
 
   const pendingComplaints = complaints.filter(c => c.status === 'pending').length;
@@ -48,28 +55,23 @@ export default function Admin() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Користувачів', value: users.length, icon: '👥', color: '#6366f1' },
-          { label: 'Всього заявок', value: requests.length, icon: '📋', color: '#f59e0b' },
-          { label: 'Активних', value: requests.filter(r => r.status === 'active').length, icon: '🟢', color: '#10b981' },
-          { label: 'Скарг', value: pendingComplaints, icon: '⚑', color: pendingComplaints > 0 ? '#ef4444' : '#64748b' },
+          { label: 'Бізнес Акаунтів', value: users.filter(u => u.is_business).length, icon: '🚜', color: '#f59e0b' },
+          { label: 'Всього Заявок', value: requests.length, icon: '🚨', color: '#ef4444' },
+          { label: 'Активних', value: requests.filter(r => ['active','taken'].includes(r.status)).length, icon: '🟢', color: '#10b981' },
         ].map(s => (
-          <div key={s.label} className="glass" style={{ padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 26, marginBottom: 4 }}>{s.icon}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-2)' }}>{s.label}</div>
+          <div key={s.label} className="glass" style={{ padding: '16px 20px', borderLeft: `3px solid ${s.color}` }}>
+            <div style={{ fontSize: 32 }}>{s.icon}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, marginTop: 8 }}>{s.value}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-2)', marginTop: 4 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'var(--color-surface)', padding: 4, borderRadius: 12, border: '1px solid var(--color-border)', width: 'fit-content' }}>
-        {[
-          { key: 'users', label: `👥 Користувачі` },
-          { key: 'requests', label: `📋 Заявки` },
-          { key: 'complaints', label: `⚑ Скарги ${pendingComplaints > 0 ? `(${pendingComplaints})` : ''}` },
-        ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} className="btn btn-sm"
-            style={{ background: tab === t.key ? 'var(--color-primary)' : 'transparent', color: tab === t.key ? '#000' : 'var(--color-text-2)', border: 'none' }}>
-            {t.label}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 4 }}>
+        {['users', 'requests', 'complaints'].map(t => (
+          <button key={t} onClick={() => setTab(t)} className={`btn btn-sm ${tab === t ? 'btn-primary' : 'btn-ghost'}`}>
+            {t === 'users' ? '👥 Користувачі' : t === 'requests' ? '📋 Заявки' : `⚑ Скарги ${pendingComplaints > 0 ? `(${pendingComplaints})` : ''}`}
           </button>
         ))}
       </div>
@@ -80,7 +82,7 @@ export default function Admin() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
-                {['Ім\'я', 'Телефон', 'Авто', 'Рейтинг', 'Допомог', 'Рег.'].map(h => (
+                {['База', 'Ім\'я / Авто', 'Рейтинг', 'Допомог', 'Реєстрація', 'Бізнес'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: 'var(--color-text-2)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{h}</th>
                 ))}
               </tr>
@@ -89,20 +91,26 @@ export default function Admin() {
               {users.map((u, i) => (
                 <tr key={u.id} style={{ borderBottom: '1px solid var(--color-border)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <div className="avatar avatar-sm">{u.name?.[0]}</div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{u.name}</div>
-                        {u.is_admin && <span style={{ fontSize: 10, background: 'rgba(245,158,11,0.15)', color: 'var(--color-primary)', padding: '1px 6px', borderRadius: 4 }}>ADMIN</span>}
-                      </div>
-                    </div>
+                    <div style={{ fontWeight: 600 }}>{u.phone}</div>
+                    {u.is_admin && <div className="badge badge-cancelled" style={{ marginTop: 4, display: 'inline-block' }}>Admin</div>}
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-text-2)' }}>{u.phone}</td>
-                  <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-text-2)' }}>{u.car_brand} {u.car_model}</td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-text-2)' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text-1)' }}>{u.name}</div>
+                    {u.car_brand ? `${u.car_brand} ${u.car_model}` : 'Не вказано'}
+                  </td>
                   <td style={{ padding: '12px 16px' }}><span style={{ color: '#f59e0b', fontWeight: 700 }}>⭐ {u.rating?.toFixed(1) || '—'}</span></td>
                   <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 600, color: 'var(--color-success)' }}>{u.help_count}</td>
                   <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--color-text-3)' }}>
                     {formatDistanceToNow(new Date(u.created_at), { addSuffix: true, locale: uk })}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <button 
+                      onClick={() => toggleBusiness(u.id, u.is_business)}
+                      className={`btn btn-sm ${u.is_business ? 'btn-success' : 'btn-ghost'}`}
+                      style={{ padding: '6px 10px', fontSize: 12 }}
+                    >
+                      {u.is_business ? '🚜 Увімкнено' : 'Вимкнено'}
+                    </button>
                   </td>
                 </tr>
               ))}

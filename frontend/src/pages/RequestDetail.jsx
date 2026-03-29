@@ -73,6 +73,8 @@ export default function RequestDetail() {
   const [notification, setNotification] = useState('');
 
   const [helperPos, setHelperPos] = useState(null);
+  const [routeGeoJson, setRouteGeoJson] = useState(null);
+  const [eta, setEta] = useState(null);
   const watchIdRef = useRef(null);
 
   const fetchRequest = async () => {
@@ -87,6 +89,26 @@ export default function RequestDetail() {
   };
 
   useEffect(() => { fetchRequest(); }, [id]);
+
+  // Fetch OSRM Route
+  useEffect(() => {
+    if (!helperPos || !request) return;
+    const fetchRoute = async () => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${helperPos[1]},${helperPos[0]};${request.longitude},${request.latitude}?overview=full&geometries=geojson`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.routes && data.routes[0]) {
+          setRouteGeoJson(data.routes[0].geometry);
+          setEta({
+            distance: (data.routes[0].distance / 1000).toFixed(1), // km
+            duration: Math.round(data.routes[0].duration / 60) // minutes
+          });
+        }
+      } catch (err) { console.error('OSRM err:', err); }
+    };
+    fetchRoute();
+  }, [helperPos, request?.latitude, request?.longitude]);
 
   // ✅ Live GPS Tracking Logic
   useEffect(() => {
@@ -238,6 +260,8 @@ export default function RequestDetail() {
     } catch {}
   };
 
+  const routePositions = routeGeoJson?.coordinates.map(c => [c[1], c[0]]);
+
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px' }}>
       {/* Notification banner */}
@@ -277,6 +301,18 @@ export default function RequestDetail() {
               <p style={{ marginTop: 14, fontSize: 14, color: 'var(--color-text-2)', lineHeight: 1.6, padding: 12, background: 'var(--color-surface)', borderRadius: 8 }}>
                 💬 {request.description}
               </p>
+            )}
+
+            {request.photo_url && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>📸 Фото з місця події</div>
+                <img 
+                  src={(import.meta.env.VITE_API_URL || 'http://localhost:3001') + request.photo_url} 
+                  alt="Car Breakdown" 
+                  style={{ width: '100%', borderRadius: 8, cursor: 'pointer', border: '1px solid var(--color-border)' }} 
+                  onClick={() => window.open((import.meta.env.VITE_API_URL || 'http://localhost:3001') + request.photo_url, '_blank')} 
+                />
+              </div>
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
@@ -323,11 +359,15 @@ export default function RequestDetail() {
                 />
                 <Marker position={[request.latitude, request.longitude]} icon={createEmojiMarker(cfg.icon, cfg.color)} />
                 
-                {/* Live GPS Tracker Marker */}
+                {/* Live GPS Tracker Marker & Route */}
                 {helperPos && (
                   <>
                     <Marker position={helperPos} icon={createEmojiMarker('🚗', '#10b981')} />
-                    <Polyline positions={[[request.latitude, request.longitude], helperPos]} color="#1fb5cf" weight={4} dashArray="5, 10" />
+                    {routePositions ? (
+                      <Polyline positions={routePositions} color="#10b981" weight={6} opacity={0.8} />
+                    ) : (
+                      <Polyline positions={[[request.latitude, request.longitude], helperPos]} color="#1fb5cf" weight={4} dashArray="5, 10" />
+                    )}
                   </>
                 )}
                 
@@ -336,6 +376,13 @@ export default function RequestDetail() {
               {helperPos && (
                 <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 1000, background: 'var(--color-success)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 8px', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span className="pulsing-dot" style={{ width: 8, height: 8, background: '#fff', borderRadius: '50%', display: 'inline-block' }} /> Live GPS
+                </div>
+              )}
+              {eta && (
+                <div style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 1000, background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-1)', fontSize: 12, fontWeight: 700, padding: '6px 10px', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.2)', display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span>⏱ {eta.duration} хв</span>
+                  <div style={{ width: 1, height: 12, background: 'var(--color-border)' }} />
+                  <span style={{ color: 'var(--color-text-2)' }}>{eta.distance} км</span>
                 </div>
               )}
             </div>

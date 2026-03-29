@@ -33,6 +33,23 @@ router.delete('/telegram-link', auth, async (req, res) => {
   }
 });
 
+router.get('/business', auth, async (req, res) => {
+  try {
+    const { Op } = require('sequelize');
+    const businesses = await User.findAll({
+      where: {
+        is_business: true,
+        last_lat: { [Op.ne]: null },
+        last_lng: { [Op.ne]: null }
+      },
+      attributes: ['id', 'name', 'phone', 'business_name', 'last_lat', 'last_lng', 'rating', 'avatar_url', 'services_offered']
+    });
+    res.json(businesses);
+  } catch (err) {
+    res.status(500).json({ error: 'Помилка сервера' });
+  }
+});
+
 router.get('/me', auth, async (req, res) => {
   res.json(req.user);
 });

@@ -14,6 +14,7 @@ const Request = sequelize.define('Request', {
   status: { type: DataTypes.ENUM('active', 'taken', 'completed', 'cancelled'), defaultValue: 'active' },
   helper_id: { type: DataTypes.UUID },
   completed_at: { type: DataTypes.DATE },
+  photo_url: { type: DataTypes.STRING },
 }, { tableName: 'requests', underscored: true });
 
 module.exports = Request;
