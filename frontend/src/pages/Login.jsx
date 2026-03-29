@@ -18,7 +18,16 @@ export default function Login() {
   const [devCode, setDevCode] = useState('');
 
   const handlePhone = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault(); 
+    setError(''); 
+    
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+      setError('Невірний формат. Використовуйте формат: 0980000000 (10 цифр)');
+      return;
+    }
+    
+    setLoading(true);
     try {
       const res = await client.post('/auth/login', { phone });
       if (res.data.dev_code) setDevCode(res.data.dev_code);
@@ -90,7 +99,18 @@ export default function Login() {
           <form onSubmit={handlePhone} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="input-group">
               <label className="input-label">Номер телефону</label>
-              <input className="input" type="tel" placeholder="+380XXXXXXXXX" value={phone} onChange={e => setPhone(e.target.value)} required />
+              <input 
+                className="input" 
+                type="tel" 
+                placeholder="0980000000" 
+                maxLength={10}
+                value={phone} 
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  setPhone(val);
+                }} 
+                required 
+              />
             </div>
             <button className="btn btn-primary btn-full btn-lg" disabled={loading}>
               {loading ? <><div className="spinner" style={{ width: 18, height: 18 }} /> Перевіряємо...</> : 'Продовжити →'}
