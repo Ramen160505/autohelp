@@ -248,9 +248,8 @@ option { background: var(--color-bg-2); color: var(--color-text); }
 .leaflet-container { background: #e5e3df !important; outline: none; border: none; }
 .leaflet-tile { 
   filter: none !important; 
-  /* Ultimate anti-aliasing fix for sub-pixel gaps */
-  width: calc(100% + 1px) !important;
-  height: calc(100% + 1px) !important;
+  width: 257px !important;
+  height: 257px !important;
   margin: -0.5px !important;
 }
 .leaflet-popup-content-wrapper {
