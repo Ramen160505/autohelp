@@ -245,13 +245,13 @@ option { background: var(--color-bg-2); color: var(--color-text); }
   animation: pulse-dot 1.5s infinite ease-out;
 }
 
-.leaflet-container { background: #e5e3df !important; }
+.leaflet-container { background: #e5e3df !important; outline: none; border: none; }
 .leaflet-tile { 
   filter: none !important; 
-  /* Fix Chrome/Safari fractional scaling gap issue */
-  width: 257px !important; 
-  height: 257px !important; 
-  outline: 1px solid transparent;
+  /* Ultimate anti-aliasing fix for sub-pixel gaps */
+  width: calc(100% + 1px) !important;
+  height: calc(100% + 1px) !important;
+  margin: -0.5px !important;
 }
 .leaflet-popup-content-wrapper {
   background: var(--color-bg-2) !important;
