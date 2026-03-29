@@ -4,7 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { SocketProvider } from './src/context/SocketContext';
 import LoginScreen from './src/screens/LoginScreen';
-import MapScreen from './src/screens/MapScreen';
+import MainTabNavigator from './src/navigation/MainTabNavigator';
+import RequestDetailScreen from './src/screens/RequestDetailScreen';
 import { View, ActivityIndicator } from 'react-native';
 
 const Stack = createNativeStackNavigator();
@@ -23,7 +24,10 @@ function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
-        <Stack.Screen name="Map" component={MapScreen} />
+        <>
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+          <Stack.Screen name="RequestDetail" component={RequestDetailScreen} />
+        </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />
       )}

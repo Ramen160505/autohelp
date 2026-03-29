@@ -9,9 +9,10 @@ const PROBLEM_TYPES = {
   battery: '🔋', fuel: '⛽', tire: '🔧', tow: '⛓️', other: '❓'
 };
 
-export default function MapScreen() {
+export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [businessUsers, setBusinessUsers] = useState([]);
   const socket = useSocket();
 
   useEffect(() => {
@@ -23,10 +24,12 @@ export default function MapScreen() {
       setLocation(loc.coords);
 
       try {
-        const res = await client.get('/requests', {
-          params: { lat: loc.coords.latitude, lng: loc.coords.longitude, radius: 20 }
-        });
-        setRequests(res.data);
+        const [reqRes, busRes] = await Promise.all([
+          client.get('/requests', { params: { lat: loc.coords.latitude, lng: loc.coords.longitude, radius: 20 } }),
+          client.get('/users/business')
+        ]);
+        setRequests(reqRes.data);
+        setBusinessUsers(busRes.data);
       } catch (e) {}
     })();
   }, []);
@@ -52,24 +55,35 @@ export default function MapScreen() {
           }}
           showsUserLocation={true}
         >
+          {/* Requests */}
           {requests.map((r) => (
             <Marker
               key={r.id}
               coordinate={{ latitude: r.latitude, longitude: r.longitude }}
               title={PROBLEM_TYPES[r.type] || '❓'}
               description={r.description || 'Потрібна допомога'}
+              onCalloutPress={() => navigation.navigate('RequestDetail', { id: r.id })}
             />
           ))}
+
+          {/* Business Users */}
+          {businessUsers.map((u) => {
+            if (!u.last_lat || !u.last_lng) return null;
+            return (
+              <Marker
+                key={`bus_${u.id}`}
+                coordinate={{ latitude: u.last_lat, longitude: u.last_lng }}
+                title={`🚜 ${u.business_name || 'Евакуатор'}`}
+                description={`⭐ ${u.rating?.toFixed(1) || 'Новий'} • Натисніть щоб подзвонити`}
+              />
+            );
+          })}
         </MapView>
       ) : (
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Отримання геолокації...</Text>
         </View>
       )}
-
-      <TouchableOpacity style={styles.fab} onPress={() => alert('Створення заявки в розробці (наступний крок MVP)')}>
-        <Text style={styles.fabIcon}>🆘</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -79,10 +93,4 @@ const styles = StyleSheet.create({
   map: { width: '100%', height: '100%' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f1525' },
   loadingText: { color: '#f59e0b', fontSize: 16 },
-  fab: {
-    position: 'absolute', bottom: 30, right: 30, backgroundColor: '#ef4444',
-    width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#ef4444', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 8, elevation: 10,
-  },
-  fabIcon: { fontSize: 32 },
 });
