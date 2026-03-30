@@ -2,8 +2,8 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 // Для Android Емулятора замість localhost використовується 10.0.2.2, 
-// Якщо запускати на реальному пристрої через Expo Go, треба вписати IPv4 комп'ютера (напр. 192.168.1.100)
-export const API_URL = 'http://10.0.2.2:3001'; 
+// Але для реального телефону по Wi-Fi треба використовувати IPv4 (тут 192.168.1.101)
+export const API_URL = 'http://192.168.1.101:3001'; 
 
 const client = axios.create({
   baseURL: `${API_URL}/api`,
