@@ -197,27 +197,7 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Download App Block */}
-      <div className="glass" style={{ padding: 20, marginTop: 24 }}>
-        <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 24 }}>📱</span> Мобільний додаток
-        </div>
-        <p style={{ fontSize: 14, color: 'var(--color-text-2)', marginBottom: 16 }}>Встановіть повноцінний додаток AutoHelp на свій Android для швидшого доступу та кращої геолокації.</p>
-        <a href="https://expo.dev/artifacts/eas/sc84H74vSB4CFCrqMqNfkh.apk" target="_blank" rel="noopener noreferrer" className="btn btn-success" style={{ width: '100%', display: 'block', textAlign: 'center' }}>
-          ⬇️ Завантажити Android (.apk)
-        </a>
-      </div>
 
-      {/* Download App Block */}
-      <div className="glass" style={{ padding: 20, marginTop: 24 }}>
-        <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 24 }}>📱</span> Мобільний додаток
-        </div>
-        <p style={{ fontSize: 13, color: 'var(--color-text-2)', marginBottom: 16 }}>Встановіть справжній додаток AutoHelp на свій телефон для кращої роботи GPS.</p>
-        <a href="https://expo.dev/artifacts/eas/sc84H74vSB4CFCrqMqNfkh.apk" target="_blank" rel="noopener noreferrer" className="btn btn-success" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-          ⬇️ Завантажити Android (.apk)
-        </a>
-      </div>
 
       <div style={{ marginTop: 32, paddingBottom: 64 }}>
         <button onClick={logout} className="btn btn-ghost" style={{ width: '100%', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.3)' }}>

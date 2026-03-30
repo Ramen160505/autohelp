@@ -49,10 +49,7 @@ if (token) {
       ]
     };
 
-    // Add APK button only if URL is set
-    if (APK_URL) {
-      keyboard.inline_keyboard.push([{ text: '📱 Завантажити Android додаток (.apk)', url: APK_URL }]);
-    }
+
 
     keyboard.inline_keyboard.push([{ text: '💬 Як це працює?', callback_data: 'how_it_works' }]);
 
